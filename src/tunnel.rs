@@ -1,5 +1,9 @@
 use std::{io::Read, net::{TcpListener, TcpStream}};
 
+use serde_json::map::Entry;
+
+use crate::files;
+
 pub fn server(ip: String) {
     let listener = match TcpListener::bind(ip.clone()) {
         Ok(listener) => {
@@ -16,7 +20,9 @@ pub fn server(ip: String) {
         match conn {
             Ok(conn) => {
                 println!("Recived connection from {}", conn.peer_addr().unwrap());
-                handle_conn(conn).unwrap();
+                let data = handle_conn(conn).unwrap();
+                files::create_folder(data).unwrap();
+                
             },
             Err(e) => {
                 eprintln!("Error: {}", e);
@@ -26,7 +32,7 @@ pub fn server(ip: String) {
     }
 }
 
-fn handle_conn(mut conn: TcpStream) -> Result<(), std::io::Error> {
+fn handle_conn(mut conn: TcpStream) -> Result<Vec<u8>, std::io::Error> {
     let mut buffer = [0u8; 4]; // Buffer to read size of data
     match conn.read_exact(&mut buffer) {
         Ok(_) => {
@@ -52,6 +58,5 @@ fn handle_conn(mut conn: TcpStream) -> Result<(), std::io::Error> {
         }
     }
 
-    println!("Buffer content: {}", String::from_utf8(data_buffer).unwrap());
-    Ok(())
+    Ok(data_buffer)
 }
