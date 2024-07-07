@@ -1,28 +1,26 @@
-use std::path::Path;
-
 use serde::{Deserialize, Serialize};
 
 
 #[derive(Debug, Serialize, Deserialize)]
-struct Author {
+pub struct Author {
     name: String
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct Version {
-    version: String
+pub struct Version {
+    pub version: String
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct Settings {
-    ip: String
+pub struct Settings {
+    pub ip: String
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ServerSettings {
-    author: Author,
-    version: Version,
-    settings: Settings
+    pub author: Author,
+    pub version: Version,
+    pub settings: Settings
 }
 
 pub fn read_toml_file(content: String) -> Option<ServerSettings> {

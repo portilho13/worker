@@ -1,8 +1,5 @@
-use std::{io::Read, net::{TcpListener, TcpStream}};
-
-use serde_json::map::Entry;
-
-use crate::files;
+use std::{io::Read, net::{TcpListener, TcpStream}, path::PathBuf};
+use crate::{files, helper, wrangler::config};
 
 pub fn server(ip: String) {
     let listener = match TcpListener::bind(ip.clone()) {
@@ -21,7 +18,41 @@ pub fn server(ip: String) {
             Ok(conn) => {
                 println!("Recived connection from {}", conn.peer_addr().unwrap());
                 let data = handle_conn(conn).unwrap();
-                files::create_folder(data).unwrap();
+                let project_name = match files::create_folder(data) {
+                    Some(project_name) => project_name,
+                    None => {
+                        println!("Couldnt find project name, returning...");
+                        return
+                    }
+                };
+
+                println!("Project Name {}", project_name);
+
+                let project_path = helper::get_local_path().display().to_string() + "/" + &project_name;
+
+                println!("Project Path {}", project_path);
+
+                let toml_file_path = project_path.clone() + "/wrangler.toml";
+
+                println!("toml_file_path {}", toml_file_path);
+
+                let content = helper::read_file_content(PathBuf::from(toml_file_path));
+
+
+                let wrangler_cfg = match config::read_toml_file(content) {
+                    Some(wrangler_cfg) => wrangler_cfg,
+                    None => {
+                        eprintln!("Failed to read toml, returning...");
+                        return
+                    }
+                };
+
+                println!("wranger_cfg {:?}", wrangler_cfg);
+
+                let project_cfg = config::ProjectConfig::new(wrangler_cfg, project_path);
+
+                println!("{:?}", project_cfg);
+
                 
             },
             Err(e) => {

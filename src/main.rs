@@ -4,41 +4,25 @@ mod wrangler;
 mod settings;
 mod helper;
 
-use std::{env, path::PathBuf, thread};
-
-use helper::get_local_path;
-
-const TCP_SERVER_IP: &str = "127.0.0.1:1986";
+use std::path::PathBuf;
 
 fn main() {
+    let local_path = helper::get_local_path();
 
-    // // Call the server function with the provided argument
-    // tunnel::server(ip.to_string());
-    // thread::spawn(move || {
-    //     let args: Vec<String> = env::args().collect();
+    let local_path = local_path.display().to_string() + "/settings.toml";
 
-    //     // Check if the required argument is present
-    //     if args.len() < 2 {
-    //         eprintln!("Usage: {} <server_ip>", args[0]);
-    //         std::process::exit(1);
-    //     }
+    let local_path = PathBuf::from(local_path);
     
-    //     let ip = &args[1];
-    //     tunnel::server(ip.to_string());
-    // });
+    let content = helper::read_file_content(local_path);
 
-    // if let Some(config) = wrangler::config::read_toml_file() {
-    //     println!("Sucessfully readed wrangler file: {:?}", config);
-    // } else {
-    //     return
-    // }
+    let server_settings = match settings::read_toml_file(content) {
+        Some(settings) => settings,
+        None => {
+            return;
+        }
+    };
 
-    let local_path = helper::get_local_path().display().to_string() + "/settings.toml";
-    let content = helper::read_file_content(PathBuf::from(local_path));
-
-    if let Some(t) = settings::read_toml_file(content) {
-        println!("{:?}", t);
-    } else {
-        return;
-    }
+    let ip = server_settings.settings.ip;
+    
+    tunnel::server(ip);
 }

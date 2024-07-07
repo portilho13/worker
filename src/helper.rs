@@ -1,4 +1,4 @@
-use std::{env, fs, path::{Path, PathBuf}};
+use std::{env, fs, path::PathBuf};
 
 pub fn get_local_path() -> PathBuf {
     let path = env::current_dir().unwrap();

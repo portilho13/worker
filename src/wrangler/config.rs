@@ -1,43 +1,49 @@
+use std::path::Path;
+
 use serde::{self, Deserialize, Serialize};
 use toml;
 
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Author {
-    name: String
+    pub name: String
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Version {
-    number: String
+    pub number: String
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Build {
-    command: String
+    pub command: String
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct WranglerConfig {
-    author: Author,
-    version: Version,
-    build: Build,
+    pub author: Author,
+    pub version: Version,
+    pub build: Build,
+}
+
+#[derive(Debug)]
+pub struct ProjectConfig {
+    wrangler_cnfig: WranglerConfig,
+    path: String
+}
+
+impl ProjectConfig {
+    pub fn new(config: WranglerConfig, path: String) -> Self {
+        ProjectConfig {
+            wrangler_cnfig: config,
+            path: path
+        }
+    }
 }
 
 
-pub fn read_toml_file() -> Option<WranglerConfig> {
-    let data = r#"
-        [author]
-        name = "port"
-
-        [version]
-        number = "1.0"
-
-        [build]
-        command = "npm start"
-    "#;
-
-    match toml::from_str(data) {
+pub fn read_toml_file(data: String) -> Option<WranglerConfig> {
+    match toml::from_str(&data) {
         Ok(config) => Some(config),
         Err(e) => {
             eprintln!("Error parsing toml file: {}", e);

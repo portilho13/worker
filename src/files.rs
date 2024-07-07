@@ -9,22 +9,32 @@ pub enum Entry {
     Directory { path: String },
 }
 
-pub fn create_folder(data: Vec<u8>) -> io::Result<()> {
+pub fn create_folder(data: Vec<u8>) -> Option<String> {
     let entries: Vec<Entry> = serde_json::from_slice(&data).unwrap();
-    for entry in entries {
+    println!("{:?}", entries);
+
+    let main_dir_name = if let Some(Entry::Directory { path }) = entries.iter().find(|entry| matches!(entry, Entry::Directory { .. })) {
+        path.clone()
+    } else {
+        eprintln!("No directory entry found in the entries.");
+        return None;
+    };
+
+    for entry in &entries {
         match entry {
             Entry::File { path, content } => {
                 println!("Received file: {}", path);
                 if let Some(parent) = Path::new(&path).parent() {
-                    fs::create_dir_all(parent)?;
+                    fs::create_dir_all(parent).unwrap();
                 }
-                fs::write(path, content)?;
+                fs::write(path, content).unwrap();
             }
             Entry::Directory { path } => {
                 println!("Received directory: {}", path);
-                fs::create_dir_all(path)?;
+                fs::create_dir_all(path).unwrap();
             }
         }
     }
-    Ok(())
+
+    Some(main_dir_name)
 }
