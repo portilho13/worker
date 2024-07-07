@@ -19,8 +19,18 @@ struct Settings {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct ServerSettings {
+pub struct ServerSettings {
     author: Author,
     version: Version,
     settings: Settings
+}
+
+pub fn read_toml_file(content: String) -> Option<ServerSettings> {
+    match toml::from_str(&content) {
+        Ok(content) => Some(content),
+        Err(e) => {
+            eprintln!("Error parsing toml: {}", e);
+            None
+        }
+    }
 }

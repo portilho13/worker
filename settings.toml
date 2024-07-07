@@ -1,0 +1,8 @@
+[author]
+name = "port"
+
+[version]
+version = "1.0"
+
+[settings]
+ip = "127.0.0.1:1234"
