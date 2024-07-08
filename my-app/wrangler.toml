@@ -1,0 +1,8 @@
+[author]
+name = "port"
+
+[version]
+number = "1.0"
+
+[build]
+command = "npm start"

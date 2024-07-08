@@ -28,14 +28,14 @@ pub struct WranglerConfig {
 
 #[derive(Debug)]
 pub struct ProjectConfig {
-    wrangler_cnfig: WranglerConfig,
-    path: String
+    pub wrangler_config: WranglerConfig,
+    pub path: String
 }
 
 impl ProjectConfig {
     pub fn new(config: WranglerConfig, path: String) -> Self {
         ProjectConfig {
-            wrangler_cnfig: config,
+            wrangler_config: config,
             path: path
         }
     }

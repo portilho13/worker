@@ -1,93 +1,55 @@
 use std::{io::Read, net::{TcpListener, TcpStream}, path::PathBuf};
-use crate::{files, helper, wrangler::config};
+use crate::{files, helper, wrangler::{self, config}};
 
 pub fn server(ip: String) {
-    let listener = match TcpListener::bind(ip.clone()) {
-        Ok(listener) => {
-            println!("Listenning on ip: {}", ip);
-            listener
-        },
-        Err(e) => {
-            eprintln!("error: {}", e);
-            return;
-        }
-    };
+    let listener = TcpListener::bind(ip.clone()).expect("Failed to bind");
+
+    println!("Listening on ip: {}", ip);
 
     for conn in listener.incoming() {
         match conn {
             Ok(conn) => {
-                println!("Recived connection from {}", conn.peer_addr().unwrap());
-                let data = handle_conn(conn).unwrap();
-                let project_name = match files::create_folder(data) {
-                    Some(project_name) => project_name,
-                    None => {
-                        println!("Couldnt find project name, returning...");
-                        return
+                println!("Received connection from {}", conn.peer_addr().unwrap());
+                match handle_conn(conn) {
+                    Ok(data) => {
+                        if let Some(project_name) = files::create_folder(data) {
+                            println!("Project Name: {}", project_name);
+
+                            let project_path = format!("{}/{}", helper::get_local_path().display(), project_name);
+                            println!("Project Path: {}", project_path);
+
+                            let toml_file_path = format!("{}/wrangler.toml", project_path);
+                            println!("TOML file path: {}", toml_file_path);
+
+                            let content = helper::read_file_content(PathBuf::from(&toml_file_path));
+
+                            if let Some(wrangler_cfg) = config::read_toml_file(content) {
+                                println!("wrangler_cfg: {:?}", wrangler_cfg);
+
+                                let project_cfg = config::ProjectConfig::new(wrangler_cfg, project_path);
+                                println!("{:?}", project_cfg);
+
+                                wrangler::run::run_wrangler(project_cfg);
+                            } else {
+                                eprintln!("Failed to read TOML, returning...");
+                            }
+                        } else {
+                            println!("Couldn't find project name, returning...");
+                        }
                     }
-                };
-
-                println!("Project Name {}", project_name);
-
-                let project_path = helper::get_local_path().display().to_string() + "/" + &project_name;
-
-                println!("Project Path {}", project_path);
-
-                let toml_file_path = project_path.clone() + "/wrangler.toml";
-
-                println!("toml_file_path {}", toml_file_path);
-
-                let content = helper::read_file_content(PathBuf::from(toml_file_path));
-
-
-                let wrangler_cfg = match config::read_toml_file(content) {
-                    Some(wrangler_cfg) => wrangler_cfg,
-                    None => {
-                        eprintln!("Failed to read toml, returning...");
-                        return
-                    }
-                };
-
-                println!("wranger_cfg {:?}", wrangler_cfg);
-
-                let project_cfg = config::ProjectConfig::new(wrangler_cfg, project_path);
-
-                println!("{:?}", project_cfg);
-
-                
-            },
-            Err(e) => {
-                eprintln!("Error: {}", e);
-                return;
+                    Err(e) => eprintln!("Failed to handle connection: {}", e),
+                }
             }
+            Err(e) => eprintln!("Failed to accept connection: {}", e),
         }
     }
 }
 
 fn handle_conn(mut conn: TcpStream) -> Result<Vec<u8>, std::io::Error> {
     let mut buffer = [0u8; 4]; // Buffer to read size of data
-    match conn.read_exact(&mut buffer) {
-        Ok(_) => {
-            println!("Read 4 bytes for data length");
-        },
-        Err(e) => {
-            eprintln!("Error: {}", e);
-            return Err(e);
-        }
-    };
-    println!("Buffer content: {:?}", buffer);
-
+    conn.read_exact(&mut buffer)?;
     let data_size = u32::from_be_bytes(buffer) as usize;
-
     let mut data_buffer = vec![0u8; data_size];
-    match conn.read_exact(&mut data_buffer) {
-        Ok(_) => {
-            println!("Read {} bytes from conn", data_size);
-        },
-        Err(e) => {
-            println!("Error: {}", e);
-            return Err(e);
-        }
-    }
-
+    conn.read_exact(&mut data_buffer)?;
     Ok(data_buffer)
 }
