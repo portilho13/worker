@@ -31,7 +31,6 @@ pub fn server(ip: String) {
 
                                 let package_json_path = format!("{}/package.json", project_cfg.path);
                                 
-                                // Define logic to handle angular
                                 #[cfg(unix)]
                                 frameworks::json::define_framework(PathBuf::from(package_json_path));
 
