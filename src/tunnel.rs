@@ -1,5 +1,5 @@
 use std::{io::Read, net::{TcpListener, TcpStream}, path::PathBuf};
-use crate::{files, helper, json::change_package_json, wrangler::{self, config}};
+use crate::{files, frameworks, helper, wrangler::{self, config}};
 
 pub fn server(ip: String) {
     let listener = TcpListener::bind(ip.clone()).expect("Failed to bind");
@@ -30,8 +30,10 @@ pub fn server(ip: String) {
                                 println!("{:?}", project_cfg);
 
                                 let package_json_path = format!("{}/package.json", project_cfg.path);
-
-                                change_package_json(PathBuf::from(package_json_path));
+                                
+                                // Define logic to handle angular
+                                #[cfg(unix)]
+                                frameworks::json::define_framework(PathBuf::from(package_json_path));
 
                                 wrangler::run::run_wrangler(project_cfg);
                             } else {
