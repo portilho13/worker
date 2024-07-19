@@ -1,14 +1,11 @@
-use std::{fs, path::PathBuf};
-
+use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-
 use crate::helper::{read_file_content, write_to_file};
-
 use super::types::{AngularPackage, ProjectTypes, ReactPackage};
 
-pub fn define_framework(path: PathBuf) {
-    let data = read_file_content(path.clone());
+pub async fn define_framework(path: PathBuf) {
+    let data = read_file_content(path.clone()).await;
 
     let variants = ProjectTypes::all_variants();
     for variant in variants {
@@ -20,7 +17,7 @@ pub fn define_framework(path: PathBuf) {
                         package = change_react_json(package);
                         let updated_data =
                             serde_json::to_string_pretty(&package).expect("Failed to serialize");
-                        write_to_file(path.clone(), &updated_data);
+                        write_to_file(path.clone(), &updated_data).await;
                         return;
                     }
                     Err(_) => {

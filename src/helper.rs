@@ -1,15 +1,16 @@
-use std::{env, fs, path::PathBuf};
+use tokio::fs;
+use std::path::PathBuf;
 
-pub fn get_local_path() -> PathBuf {
-    let path = env::current_dir().unwrap();
-    path
+pub async fn get_local_path() -> PathBuf {
+    tokio::task::spawn_blocking(|| std::env::current_dir().unwrap())
+        .await
+        .unwrap()
 }
 
-pub fn read_file_content(path: PathBuf) -> String {
-    let content = fs::read_to_string(path).unwrap();
-    content
+pub async fn read_file_content(path: PathBuf) -> String {
+    fs::read_to_string(path).await.unwrap()
 }
 
-pub fn write_to_file(path: PathBuf, data: &str) {
-    fs::write(path, data).expect("Failed to write data to file");
+pub async fn write_to_file(path: PathBuf, data: &str) {
+    fs::write(path, data).await.expect("Failed to write data to file");
 }

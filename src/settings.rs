@@ -1,26 +1,31 @@
 use serde::{Deserialize, Serialize};
 
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Author {
-    name: String
+    name: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Version {
-    pub version: String
+    pub version: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Settings {
-    pub ip: String
+    pub ip: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Api {
+    pub ip: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ServerSettings {
     pub author: Author,
     pub version: Version,
-    pub settings: Settings
+    pub conn: Settings,
+    pub api: Api
 }
 
 pub fn read_toml_file(content: String) -> Option<ServerSettings> {

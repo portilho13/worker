@@ -1,16 +1,16 @@
 use std::collections::HashMap;
-
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ReactPackage {
-    name: String,
-    version: String,
-    private: bool,
-    dependencies: Value,
+    pub name: String,
+    pub version: String,
+    pub private: bool,
+    pub dependencies: Value,
     pub scripts: ReactScripts,
-    eslintConfig: Value,
-    browserslist: Value,
+    pub eslintConfig: Value,
+    pub browserslist: Value,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -23,21 +23,21 @@ pub struct ReactScripts {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct AngularPackage {
-    name: String,
-    version: String,
+    pub name: String,
+    pub version: String,
     pub scripts: AngularScripts,
-    private: bool,
-    dependencies: HashMap<String, String>,
-    devDependencies: HashMap<String, String>,
+    pub private: bool,
+    pub dependencies: HashMap<String, String>,
+    pub devDependencies: HashMap<String, String>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct AngularScripts {
-    ng: String,
-    start: String,
-    build: String,
-    watch: String,
-    test: String,
+    pub ng: String,
+    pub start: String,
+    pub build: String,
+    pub watch: String,
+    pub test: String,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -48,9 +48,6 @@ pub enum ProjectTypes {
 
 impl ProjectTypes {
     pub fn all_variants() -> Vec<ProjectTypes> {
-        vec![
-            ProjectTypes::Angular,
-            ProjectTypes::React,
-        ]
+        vec![ProjectTypes::Angular, ProjectTypes::React]
     }
 }

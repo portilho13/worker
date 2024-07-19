@@ -4,5 +4,8 @@ name = "port"
 [version]
 version = "1.0"
 
-[settings]
+[conn]
 ip = "127.0.0.1:2005"
+
+[api]
+ip = "127.0.0.1:3214"

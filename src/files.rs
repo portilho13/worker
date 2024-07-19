@@ -1,6 +1,6 @@
 use serde::{Serialize, Deserialize};
-use std::fs;
-use std::io::{self, Write};
+use tokio::fs;
+use std::fs::Permissions;
 use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
 
@@ -10,7 +10,7 @@ pub enum Entry {
     Directory { path: String },
 }
 
-pub fn create_folder(data: Vec<u8>) -> Option<String> {
+pub async fn create_folder(data: Vec<u8>) -> Option<String> {
     let entries: Vec<Entry> = serde_json::from_slice(&data).unwrap();
 
     let main_dir_name = if let Some(Entry::Directory { path }) = entries.iter().find(|entry| matches!(entry, Entry::Directory { .. })) {
@@ -24,21 +24,31 @@ pub fn create_folder(data: Vec<u8>) -> Option<String> {
         match entry {
             Entry::File { path, content } => {
                 if let Some(parent) = Path::new(&path).parent() {
-                    fs::create_dir_all(parent).unwrap();
-                    let permissions = fs::Permissions::from_mode(0o777);
-                    fs::set_permissions(parent, permissions).unwrap();
+                    fs::create_dir_all(parent).await.unwrap();
+                    
+                    // Set permissions synchronously
+                    set_permissions_sync(parent).unwrap();
                 }
-                fs::write(path, content).unwrap();
-                let permissions = fs::Permissions::from_mode(0o777);
-                fs::set_permissions(path, permissions).unwrap();
+
+                fs::write(path, content).await.unwrap();
+
+                // Set permissions synchronously
+                set_permissions_sync(path).unwrap();
             }
             Entry::Directory { path } => {
-                fs::create_dir_all(path).unwrap();
-                let permissions = fs::Permissions::from_mode(0o777);
-                fs::set_permissions(path, permissions).unwrap();
+                fs::create_dir_all(path).await.unwrap();
+                
+                // Set permissions synchronously
+                set_permissions_sync(path).unwrap();
             }
         }
     }
 
     Some(main_dir_name)
+}
+
+/// Set permissions synchronously
+fn set_permissions_sync<P: AsRef<Path>>(path: P) -> std::io::Result<()> {
+    let permissions = Permissions::from_mode(0o777);
+    std::fs::set_permissions(path, permissions)
 }
